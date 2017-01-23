@@ -1,5 +1,9 @@
 @import 'colors';
 
+.title {
+  user-select: none;
+}
+
 .text-center {
   text-align: center;
 }
@@ -9,6 +13,4 @@ canvas {
   width: 80vmin;
   height: 80vmin;
   margin: auto;
-
-  background: red;
 }

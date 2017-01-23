@@ -17,6 +17,49 @@ let ticTacToe = (function(global) {
         }
     }
 
+    Box.prototype.draw = function(ctx) {
+        let centerX = this.x + this.size / 2;
+        let centerY = this.y + this.size / 2;
+        let offset = this.size * 0.3;
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 5;
+        if (this.fill === "x") {
+            ctx.beginPath();
+            ctx.moveTo(centerX - offset, centerY + offset);
+            ctx.lineTo(centerX + offset, centerY - offset);
+            ctx.moveTo(centerX + offset, centerY + offset);
+            ctx.lineTo(centerX - offset, centerY - offset);
+            ctx.stroke();
+        }
+        else if (this.fill === "o") {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, offset, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+    }
+
+    let game = {
+        init: function() {
+            this.opponent = "player";
+        },
+
+        makeTurn: function(event) {
+            if (this.turn === undefined) {
+                this.turn = "o";
+            }
+            let selected = Box.checkCollision(event.layerX, event.layerY);
+
+            if (selected.fill !== "e") {
+                return;
+            }
+            
+            selected.fill = this.turn;
+            this.turn = this.turn === "o" ? "x" : "o";
+            canvas.update();
+        }
+    };
+
     let canvas = {
         init: function() {
             this.element = document.querySelector("canvas");
@@ -24,13 +67,13 @@ let ticTacToe = (function(global) {
             this.size = this.element.scrollWidth;
             this.element.width = this.size;
             this.element.height = this.size;
-            this.boxSize = this.size * 0.33334;
+            this.boxSize = Math.floor(this.size * 0.33334);
 
             for (let y = 0; y < 3; y++) {
                 for (let x = 0; x < 3; x++) {
                     Box.boxes.push(new Box(this.boxSize * x,
-                                            this.boxSize * y,
-                                            this.boxSize));
+                                           this.boxSize * y,
+                                           this.boxSize));
                 }
             }
 
@@ -39,6 +82,7 @@ let ticTacToe = (function(global) {
 
         drawGrid: function() {
             this.ctx.lineWidth = 2;
+            this.ctx.strokeStyle = "black";
 
             for (let i = 1; i <= 2; i++) {
                 this.ctx.beginPath();
@@ -53,12 +97,8 @@ let ticTacToe = (function(global) {
         },
 
         drawBoxes: function() {
-            let drawRect = (box) => this.ctx.fillRect(box.x, box.y,
-                                                      box.size, box.size);
-
             for (let i = 0; i < Box.boxes.length; i++) {
-                this.ctx.fillStyle = "white";
-                drawRect(Box.boxes[i]);
+                Box.boxes[i].draw(this.ctx);
             }
         },
 
@@ -68,9 +108,8 @@ let ticTacToe = (function(global) {
         }
     }
 
+    game.init();
     canvas.init();
-    canvas.element.addEventListener("click", function(event) {
-        let a = Box.checkCollision(event.layerX, event.layerY);
-    });
+    canvas.element.addEventListener("click", game.makeTurn);
 
 })(window);
