@@ -1,0 +1,11 @@
+.text-center {
+  text-align: center; }
+
+canvas {
+  display: block;
+  width: 80vmin;
+  height: 80vmin;
+  margin: auto;
+  background: red; }
+
+/*# sourceMappingURL=base.css.map */
