@@ -14,17 +14,40 @@
   </head>
 
   <body>
+    <i class="btn-settings fa fa-2x fa-cog" aria-hidden="true"></i>
+
     <section class="page-game">
       <header>
         <h1 class="title text-center">Tic Tac Toe</h1>
-        <i class="settings fa fa-2x fa-cog" aria-hidden="true"></i>
       </header>
 
       <canvas></canvas>
+
+      <section class="actions">
+        <h2 class="text-center">Score</h2>
+        <div class="scores">
+          <div class="score-x">
+            <svg class="svg-x">
+              <line x1="0" y1="0" x2="50" y2="50"/>
+              <line x1="50" y1="0" x2="0" y2="50"/>
+            </svg>
+            <span class="span-score-x text-center">0</span>
+          </div>
+
+          <div class="score-o">
+            <svg class="svg-o">
+              <circle cx="25" cy="25" r="25"/>
+            </svg>
+            <span class="span-score-o text-center">0</span>
+          </div>
+        </div>
+        
+      </section>
     </section>
 
     <section class="page-settings">
-      asas
+      <h1 class="text-center">Settings</h1>
+      <hr>
     </section>
 
     <script src="assets/js/tic-tac-toe.js"></script>

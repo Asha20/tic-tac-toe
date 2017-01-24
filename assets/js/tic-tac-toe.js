@@ -7,25 +7,17 @@ let ticTacToe = (function(global) {
     }
     Box.boxes = [];
 
-    Box.checkCollision = function(x, y) {
-        for (let i = 0; i < Box.boxes.length; i++) {
-            let box = Box.boxes[i];
-            if (x > box.x && x < (box.x + box.size) &&
-                y > box.y && y < (box.y + box.size)) {
-                return i;
-            }
-        }
+    Box.find = function(x, y) {
+        return Box.boxes.find((box) => x > box.x && x < (box.x + box.size) &&
+                                       y > box.y && y < (box.y + box.size));
     };
 
     Box.clear = function() {
-        for (let i = 0; i < Box.boxes.length; i++) {
-            Box.boxes[i].fill = "e";
-        }
-        canvas.update();
+        Box.boxes.forEach((box) => box.fill = "e");
     };
 
     Box.isFull = function() {
-        return Box.boxes.every((element) => element.fill !== "e");
+        return Box.boxes.every((box) => box.fill !== "e");
     }
 
     Box.display = function() {
@@ -40,35 +32,41 @@ let ticTacToe = (function(global) {
         console.log(output);
     };
 
-    Box.prototype.draw = function(ctx, winning) {
+    Box.prototype.draw = function(winning) {
         let centerX = this.x + this.size / 2;
         let centerY = this.y + this.size / 2;
         let offset = this.size * 0.3;
 
-        ctx.strokeStyle = winning ? "red" : "black";
-        ctx.lineWidth = 5;
+        canvas.ctx.strokeStyle = winning ? "red" : "#361736";
+        canvas.ctx.lineWidth = 5;
         if (this.fill === "x") {
-            ctx.beginPath();
-            ctx.moveTo(centerX - offset, centerY + offset);
-            ctx.lineTo(centerX + offset, centerY - offset);
-            ctx.moveTo(centerX + offset, centerY + offset);
-            ctx.lineTo(centerX - offset, centerY - offset);
-            ctx.stroke();
+            canvas.ctx.beginPath();
+            canvas.ctx.moveTo(centerX - offset, centerY + offset);
+            canvas.ctx.lineTo(centerX + offset, centerY - offset);
+            canvas.ctx.moveTo(centerX + offset, centerY + offset);
+            canvas.ctx.lineTo(centerX - offset, centerY - offset);
+            canvas.ctx.stroke();
         }
         else if (this.fill === "o") {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, offset, 0, 2 * Math.PI);
-            ctx.stroke();
+            canvas.ctx.beginPath();
+            canvas.ctx.arc(centerX, centerY, offset, 0, 2 * Math.PI);
+            canvas.ctx.stroke();
         }
         else if (this.fill === "e") {
-            ctx.fillStyle = "white";
-            ctx.fillRect(this.x, this.y, this.size, this.size);
+            canvas.ctx.fillStyle = "white";
+            canvas.ctx.fillRect(this.x, this.y, this.size, this.size);
         }
     };
 
     let game = (function() {
         let opponent = "player";
         let turn = "o";
+        let score = {
+            x: 0,
+            o: 0,
+            spanX: document.querySelector(".span-score-x"),
+            spanO: document.querySelector(".span-score-o")
+        };
         let pause = false;
 
         let winConditions = [
@@ -85,16 +83,17 @@ let ticTacToe = (function(global) {
         function makeTurn(event) {
             if (pause) {
                 Box.clear();
+                canvas.update();
                 pause = false;
                 return;
             }
 
-            let selected = Box.checkCollision(event.layerX, event.layerY);
-            if (Box.boxes[selected].fill !== "e") {
+            let selected = Box.find(event.layerX, event.layerY);
+            if (selected.fill !== "e") {
                 return;
             }
             
-            Box.boxes[selected].fill = turn;
+            selected.fill = turn;
             turn = turn === "o" ? "x" : "o";
 
             if (!victory()) {
@@ -103,21 +102,21 @@ let ticTacToe = (function(global) {
                 }
                 canvas.update();
             }
-        };
+        }
 
         function endGame(winner, winBoxes) {
             turn = "o";
+            pause = true;
             if (winBoxes !== undefined) {
-                for (let i = 0; i < winBoxes.length; i++) {
-                    winBoxes[i].draw(canvas.ctx, true);
-                }
+                winBoxes.forEach((box) => box.draw(true));
             }
 
-            pause = true;
-            console.log(winner, "won!");
+            if (winner !== undefined) {
+                score[winner] += 1;
+                (winner === "o" ? score.spanO : score.spanX).innerHTML = score[winner];
+            }
         }
 
-        // Finish this
         function victory() {
             for (let i = 0; i < winConditions.length; i++) {
                 let winBoxes = [];
@@ -140,12 +139,12 @@ let ticTacToe = (function(global) {
                 }
             }
             return false;
-        };
+        }
 
         return {
             turn: turn,
             makeTurn: makeTurn
-        }
+        };
     })();
 
     let canvas = {
@@ -170,7 +169,7 @@ let ticTacToe = (function(global) {
 
         drawGrid: function() {
             this.ctx.lineWidth = 2;
-            this.ctx.strokeStyle = "black";
+            this.ctx.strokeStyle = "#361736";
 
             for (let i = 1; i <= 2; i++) {
                 this.ctx.beginPath();
@@ -185,9 +184,7 @@ let ticTacToe = (function(global) {
         },
 
         drawBoxes: function() {
-            for (let i = 0; i < Box.boxes.length; i++) {
-                Box.boxes[i].draw(this.ctx);
-            }
+            Box.boxes.forEach((box) => box.draw(), this);
         },
 
         update: function() {
