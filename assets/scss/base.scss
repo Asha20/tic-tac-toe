@@ -14,3 +14,27 @@ canvas {
   height: 80vmin;
   margin: auto;
 }
+
+.settings {
+  transition: all .2s ease-in-out;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 3px;
+
+  color: black;
+  border: 3px solid black;
+  border-radius: 100%;
+}
+
+.settings:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.page-settings {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}

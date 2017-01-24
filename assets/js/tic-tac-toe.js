@@ -24,6 +24,10 @@ let ticTacToe = (function(global) {
         canvas.update();
     };
 
+    Box.isFull = function() {
+        return Box.boxes.every((element) => element.fill !== "e");
+    }
+
     Box.display = function() {
         let output = ""
         for (let i = 0; i < 3; i++) {
@@ -93,23 +97,28 @@ let ticTacToe = (function(global) {
             Box.boxes[selected].fill = turn;
             turn = turn === "o" ? "x" : "o";
 
-            if (!checkVictory()) {
+            if (!victory()) {
+                if (Box.isFull()) {
+                    endGame();
+                }
                 canvas.update();
             }
         };
 
-        function victory(player, winBoxes) {
+        function endGame(winner, winBoxes) {
             turn = "o";
-            for (let i = 0; i < winBoxes.length; i++) {
-                winBoxes[i].draw(canvas.ctx, true);
+            if (winBoxes !== undefined) {
+                for (let i = 0; i < winBoxes.length; i++) {
+                    winBoxes[i].draw(canvas.ctx, true);
+                }
             }
 
             pause = true;
-            console.log(player, "won!");
+            console.log(winner, "won!");
         }
 
         // Finish this
-        function checkVictory() {
+        function victory() {
             for (let i = 0; i < winConditions.length; i++) {
                 let winBoxes = [];
                 for (let j = 0; j < winConditions[i].length; j++) {
@@ -121,12 +130,12 @@ let ticTacToe = (function(global) {
                 }
                 if (winBoxes.length === 3 &&
                     winBoxes.every((element) => element.fill === "o")) {
-                    victory("o", winBoxes);
+                    endGame("o", winBoxes);
                     return true;
                 }
                 else if (winBoxes.length === 3 &&
                          winBoxes.every((element) => element.fill === "x")) {
-                    victory("x", winBoxes);
+                    endGame("x", winBoxes);
                     return true;
                 }
             }
