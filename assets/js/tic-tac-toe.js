@@ -12,17 +12,36 @@ let ticTacToe = (function(global) {
             let box = Box.boxes[i];
             if (x > box.x && x < (box.x + box.size) &&
                 y > box.y && y < (box.y + box.size)) {
-                return Box.boxes[i];
+                return i;
             }
         }
-    }
+    };
 
-    Box.prototype.draw = function(ctx) {
+    Box.clear = function() {
+        for (let i = 0; i < Box.boxes.length; i++) {
+            Box.boxes[i].fill = "e";
+        }
+        canvas.update();
+    };
+
+    Box.display = function() {
+        let output = ""
+        for (let i = 0; i < 3; i++) {
+            let a = i * 3;
+            let line = Box.boxes[a].fill +
+                         Box.boxes[a + 1].fill +
+                         Box.boxes[a + 2].fill;
+            output += line + "\n";
+        }
+        console.log(output);
+    };
+
+    Box.prototype.draw = function(ctx, winning) {
         let centerX = this.x + this.size / 2;
         let centerY = this.y + this.size / 2;
         let offset = this.size * 0.3;
 
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = winning ? "red" : "black";
         ctx.lineWidth = 5;
         if (this.fill === "x") {
             ctx.beginPath();
@@ -37,28 +56,88 @@ let ticTacToe = (function(global) {
             ctx.arc(centerX, centerY, offset, 0, 2 * Math.PI);
             ctx.stroke();
         }
-    }
+        else if (this.fill === "e") {
+            ctx.fillStyle = "white";
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    };
 
-    let game = {
-        init: function() {
-            this.opponent = "player";
-        },
+    let game = (function() {
+        let opponent = "player";
+        let turn = "o";
+        let pause = false;
 
-        makeTurn: function(event) {
-            if (this.turn === undefined) {
-                this.turn = "o";
+        let winConditions = [
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        function makeTurn(event) {
+            if (pause) {
+                Box.clear();
+                pause = false;
+                return;
             }
-            let selected = Box.checkCollision(event.layerX, event.layerY);
 
-            if (selected.fill !== "e") {
+            let selected = Box.checkCollision(event.layerX, event.layerY);
+            if (Box.boxes[selected].fill !== "e") {
                 return;
             }
             
-            selected.fill = this.turn;
-            this.turn = this.turn === "o" ? "x" : "o";
-            canvas.update();
+            Box.boxes[selected].fill = turn;
+            turn = turn === "o" ? "x" : "o";
+
+            if (!checkVictory()) {
+                canvas.update();
+            }
+        };
+
+        function victory(player, winBoxes) {
+            turn = "o";
+            for (let i = 0; i < winBoxes.length; i++) {
+                winBoxes[i].draw(canvas.ctx, true);
+            }
+
+            pause = true;
+            console.log(player, "won!");
         }
-    };
+
+        // Finish this
+        function checkVictory() {
+            for (let i = 0; i < winConditions.length; i++) {
+                let winBoxes = [];
+                for (let j = 0; j < winConditions[i].length; j++) {
+                    let position = winConditions[i][j];
+                    if (Box.boxes[position].fill === "e") {
+                        break;
+                    }
+                    winBoxes.push(Box.boxes[position]);
+                }
+                if (winBoxes.length === 3 &&
+                    winBoxes.every((element) => element.fill === "o")) {
+                    victory("o", winBoxes);
+                    return true;
+                }
+                else if (winBoxes.length === 3 &&
+                         winBoxes.every((element) => element.fill === "x")) {
+                    victory("x", winBoxes);
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        return {
+            turn: turn,
+            makeTurn: makeTurn
+        }
+    })();
 
     let canvas = {
         init: function() {
@@ -108,8 +187,6 @@ let ticTacToe = (function(global) {
         }
     }
 
-    game.init();
     canvas.init();
     canvas.element.addEventListener("click", game.makeTurn);
-
 })(window);
